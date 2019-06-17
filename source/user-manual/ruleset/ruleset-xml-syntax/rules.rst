@@ -98,6 +98,20 @@ Example:
   .. code-block:: xml
 
     <!--- Rule definition -->
+    <rule id="100001" level="3">
+      ...
+    </rule>
+
+
+In order to create a custom rule, a rule number and alert level needs to be set. You can use any number
+custom number as the rule id. As long as that number doesn't conflict with a current rule. It is recomme
+nded to use 100001-999999 to avoid conflict with any current rules.
+
+Example:
+
+  .. code-block:: xml
+
+    <!--- Rule definition -->
     <rule id="100001" maxsize="300" level="3">
       ...
     </rule>
@@ -125,6 +139,23 @@ Example:
     </rule>
 
 If the rule matches the ``id`` 100200 that contains the ``Queue flood!`` phrase in it, rule activates and sends an event.
+
+Another example of using match can be seen by examining the existing sshd rules. 
+
+Example:
+
+  .. code-block:: xml
+
+  <rule id="5701" level="8">
+    <if_sid>5700</if_sid>
+    <match>Bad protocol version identification</match>
+    <description>sshd: Possible attack on the ssh server </description>
+    <description>(or version gathering).</description>
+    <group>pci_dss_11.4,gpg13_4.12,gdpr_IV_35.7.d,</group>
+  </rule>
+
+In this example, we are processesing the output of ``sshd``. The sshd program is referenced in rule ``5700`` . We are using ``match`` to specify the output which we would like to use to create the alert. This alert will only be activated when ``sshd`` has an output of ``Bad protocol version identification`` . 
+
 
 regex
 ^^^^^
@@ -159,16 +190,66 @@ decoded_as
 | **Allowed values** | Any decoder name |
 +--------------------+------------------+
 
+Example:
+
+  ``decoded_as`` is used to reference a decoder. Once the decoder is specificed you can alert for output specific to that decoder.
+
+  .. code-block:: xml
+
+ <group name="json,owncloud,">
+  <rule id="87300" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="@source">ownCloud</field>
+    <description>ownCloud messages grouped.</description>
+   </rule>
+ 
+  <rule id="87310" level="0">
+    <decoded_as>owncloud</decoded_as>
+    <description>ownCloud messages grouped.</description>
+  </rule>
+
+
+  <rule id="100300" level="9">
+    <if_sid>87300,87310</if_sid>
+    <match>Login failed: 'admin' </match>
+    <description>ownCloud authentication failed.</description>
+  </rule>
+
+  <rule id="100301" level="9">
+    <if_sid>87300,87310</if_sid>
+    <match>Login failed: user 'admin' </match>
+    <description>ownCloud authentication failed.</description>
+  </rule>
+
+In this example, we are using the ``decoded_as`` and applying it to the existing owncloud decoder. Wazuh already has a standard rule for alerting on failed login attempts on ownlcloud, but maybe you want to see failed attempts at the admin account and have them alert on a higher level.
+
+So in our custom rule file, we will create two custom rules  ``100300`` and ``100301`` that reference twoalready built owncloud rules ``87300`` and ``87310``. Rules ``87300`` and ``87310`` use ``decoded_as`` toreference owncloud decoders. Our rule will only alert on failed login of the admin account by only alerting on matching output of  ``Login failed: 'admin'`` or ``Login failed: user 'admin'``. 
+
 category
 ^^^^^^^^
 
 Selects in which rule decoding category the rule should be included: ids, syslog, firewall, web-log, squid or windows.
+
 
 +--------------------+--------------+
 | **Default Value**  | n/a          |
 +--------------------+--------------+
 | **Allowed values** | Any category |
 +--------------------+--------------+
+
+Example:
+
+  ``category`` is used to specificy a category. You can either reference an existing category or create your own.
+
+  .. code-block:: xml
+
+ <group name="myapplication,">
+  <rule id="100200" level="0">
+    <category>myapplication</category>
+    <description>Rules for my application</description>
+ </rule>
+
+We created a ``group`` and ``category`` for ``myapplication``. You can now use your ``category`` as a filter to create or edit kibana dashboards for alerts about ``myapplication``. 
 
 field
 ^^^^^
@@ -178,6 +259,21 @@ Any ``OS_Regex`` to be compared to a field extracted by the decoder.
 +----------+-----------------------------------------------------------+
 | **name** | Specifies the name of the field extracted by the decoder. |
 +----------+-----------------------------------------------------------+
+
+Example:
+
+  ``field`` can be used to specify a field value. We can specify to only alert on Error Severity levels for a specific exe file. 
+
+  .. code-block:: xml
+
+  <rule id="100321" level="9">
+    <if_sid>60003</if_sid>
+    <field name="win.system.severityValue">^ERROR$</field>
+    <description> My application error event</description>
+    <options>no_full_log</options>
+    <match>myapp.exe</match>
+  </rule>
+
 
 srcip
 ^^^^^
