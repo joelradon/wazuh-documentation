@@ -128,7 +128,7 @@ Any string to match against the log event.
 | **Allowed values** | Any `sregex expression <regex.html#os-match-or-sregex-syntax>`_ |
 +--------------------+-----------------------------------------------------------------+
 
-Example:
+Example 1:
 
   .. code-block:: xml
 
@@ -140,9 +140,8 @@ Example:
 
 If the rule matches the ``id`` 100200 that contains the ``Queue flood!`` phrase in it, rule activates and sends an event.
 
-Another example of using match can be seen by examining the existing sshd rules. 
 
-Example:
+Example 2:
 
   .. code-block:: xml
 
@@ -154,7 +153,7 @@ Example:
       <group>pci_dss_11.4,gpg13_4.12,gdpr_IV_35.7.d,</group>
     </rule>
 
-In this example, we are processesing the output of ``sshd``. The sshd program is referenced in rule ``5700`` . We are using ``match`` to specify the output which we would like to use to create the alert. This alert will only be activated when ``sshd`` has an output of ``Bad protocol version identification`` . 
+Another example of using match can be seen by examining the existing sshd rules. We are processesing the output of ``sshd``. The sshd program is referenced in rule ``5700`` . We are using ``match`` to specify the output which we would like to use to create the alert. This alert will only be activated when ``sshd`` has an output of ``Bad protocol version identification`` . 
 
 
 regex
@@ -192,34 +191,34 @@ decoded_as
 
 Example:
 
-  ``decoded_as`` is used to reference a decoder. Once the decoder is specificed you can alert for output specific to that decoder.
+``decoded_as`` is used to reference a decoder. Once the decoder is specificed you can alert for output specific to that decoder.
 
   .. code-block:: xml
 
  <group name="json,owncloud,">
-  <rule id="87300" level="0">
-    <decoded_as>json</decoded_as>
-    <field name="@source">ownCloud</field>
-    <description>ownCloud messages grouped.</description>
-   </rule>
+    <rule id="87300" level="0">
+      <decoded_as>json</decoded_as>
+      <field name="@source">ownCloud</field>
+      <description>ownCloud messages grouped.</description>
+    </rule>
  
-  <rule id="87310" level="0">
-    <decoded_as>owncloud</decoded_as>
-    <description>ownCloud messages grouped.</description>
-  </rule>
+    <rule id="87310" level="0">
+      <decoded_as>owncloud</decoded_as>
+      <description>ownCloud messages grouped.</description>
+    </rule>
 
 
-  <rule id="100300" level="9">
-    <if_sid>87300,87310</if_sid>
-    <match>Login failed: 'admin' </match>
-    <description>ownCloud authentication failed.</description>
-  </rule>
+    <rule id="100300" level="9">
+      <if_sid>87300,87310</if_sid>
+      <match>Login failed: 'admin' </match>
+      <description>ownCloud authentication failed.</description>
+    </rule>
 
-  <rule id="100301" level="9">
-    <if_sid>87300,87310</if_sid>
-    <match>Login failed: user 'admin' </match>
-    <description>ownCloud authentication failed.</description>
-  </rule>
+    <rule id="100301" level="9">
+      <if_sid>87300,87310</if_sid>
+      <match>Login failed: user 'admin' </match>
+      <description>ownCloud authentication failed.</description>
+    </rule>
 
 In this example, we are using the ``decoded_as`` and applying it to the existing owncloud decoder. Wazuh already has a standard rule for alerting on failed login attempts on ownlcloud, but maybe you want to see failed attempts at the admin account and have them alert on a higher level.
 
