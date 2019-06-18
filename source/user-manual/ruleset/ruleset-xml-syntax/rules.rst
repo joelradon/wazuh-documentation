@@ -194,20 +194,16 @@ Example:
 ``decoded_as`` is used to reference a decoder. Once the decoder is specificed you can alert for output specific to that decoder.
 
   .. code-block:: xml
-
     <rule id="87300" level="0">
       <decoded_as>json</decoded_as>
       <field name="@source">ownCloud</field>
       <description>ownCloud messages grouped.</description>
     </rule>
- 
-  .. code-block:: xml
-  
+    
     <rule id="87310" level="0">
       <decoded_as>owncloud</decoded_as>
       <description>ownCloud messages grouped.</description>
     </rule>
-
 
     <rule id="100300" level="9">
       <if_sid>87300,87310</if_sid>
