@@ -195,13 +195,14 @@ Example:
 
   .. code-block:: xml
 
- <group name="json,owncloud,">
     <rule id="87300" level="0">
       <decoded_as>json</decoded_as>
       <field name="@source">ownCloud</field>
       <description>ownCloud messages grouped.</description>
     </rule>
  
+  .. code-block:: xml
+  
     <rule id="87310" level="0">
       <decoded_as>owncloud</decoded_as>
       <description>ownCloud messages grouped.</description>
@@ -219,7 +220,6 @@ Example:
       <match>Login failed: user 'admin' </match>
       <description>ownCloud authentication failed.</description>
     </rule>
-  </group> 
 
 In this example, we are using the ``decoded_as`` and applying it to the existing owncloud decoder. Wazuh already has a standard rule for alerting on failed login attempts on ownlcloud, but maybe you want to see failed attempts at the admin account and have them alert on a higher level.
 
