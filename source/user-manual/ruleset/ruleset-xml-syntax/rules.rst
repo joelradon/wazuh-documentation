@@ -194,6 +194,7 @@ Example:
 ``decoded_as`` is used to reference a decoder. Once the decoder is specificed you can alert for output specific to that decoder.
 
   .. code-block:: xml
+
     <rule id="87300" level="0">
       <decoded_as>json</decoded_as>
       <field name="@source">ownCloud</field>
