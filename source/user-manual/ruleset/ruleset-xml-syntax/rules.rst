@@ -146,13 +146,13 @@ Example:
 
   .. code-block:: xml
 
-  <rule id="5701" level="8">
-    <if_sid>5700</if_sid>
-    <match>Bad protocol version identification</match>
-    <description>sshd: Possible attack on the ssh server </description>
-    <description>(or version gathering).</description>
-    <group>pci_dss_11.4,gpg13_4.12,gdpr_IV_35.7.d,</group>
-  </rule>
+    <rule id="5701" level="8">
+      <if_sid>5700</if_sid>
+      <match>Bad protocol version identification</match>
+      <description>sshd: Possible attack on the ssh server </description>
+      <description>(or version gathering).</description>
+      <group>pci_dss_11.4,gpg13_4.12,gdpr_IV_35.7.d,</group>
+    </rule>
 
 In this example, we are processesing the output of ``sshd``. The sshd program is referenced in rule ``5700`` . We are using ``match`` to specify the output which we would like to use to create the alert. This alert will only be activated when ``sshd`` has an output of ``Bad protocol version identification`` . 
 
