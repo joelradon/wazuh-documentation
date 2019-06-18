@@ -264,13 +264,13 @@ Example:
 
   .. code-block:: xml
 
-  <rule id="100321" level="9">
-    <if_sid>60003</if_sid>
-    <field name="win.system.severityValue">^ERROR$</field>
-    <description> My application error event</description>
-    <options>no_full_log</options>
-    <match>myapp.exe</match>
-  </rule>
+    <rule id="100321" level="9">
+      <if_sid>60003</if_sid>
+      <field name="win.system.severityValue">^ERROR$</field>
+      <description> My application error event</description>
+      <options>no_full_log</options>
+      <match>myapp.exe</match>
+    </rule>
 
 
 srcip
