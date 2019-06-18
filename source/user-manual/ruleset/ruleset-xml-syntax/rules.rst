@@ -169,7 +169,7 @@ Any regex to match against the log event.
 
 Example:
 
-  ``regex`` is used to find a variety of strings in a rule. For example, if we want to match any valid IP:
+``regex`` is used to find a variety of strings in a rule. For example, if we want to match any valid IP:
 
   .. code-block:: xml
 
@@ -219,6 +219,7 @@ Example:
       <match>Login failed: user 'admin' </match>
       <description>ownCloud authentication failed.</description>
     </rule>
+  </group> 
 
 In this example, we are using the ``decoded_as`` and applying it to the existing owncloud decoder. Wazuh already has a standard rule for alerting on failed login attempts on ownlcloud, but maybe you want to see failed attempts at the admin account and have them alert on a higher level.
 
