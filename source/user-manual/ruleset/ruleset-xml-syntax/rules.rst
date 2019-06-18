@@ -240,12 +240,12 @@ Example:
 
   .. code-block:: xml
 
-  <group name="myapplication,">
-    <rule id="100200" level="0">
-      <category>myapplication</category>
-      <description>Rules for my application</description>
-    </rule>
-  </group>
+    <group name="myapplication,">
+      <rule id="100200" level="0">
+        <category>myapplication</category>
+        <description>Rules for my application</description>
+      </rule>
+    </group>
 
 We created a ``group`` and ``category`` for ``myapplication``. You can now use your ``category`` as a filter to create or edit kibana dashboards for alerts about ``myapplication``. 
 
