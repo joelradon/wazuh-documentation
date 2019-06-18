@@ -236,15 +236,15 @@ Selects in which rule decoding category the rule should be included: ids, syslog
 
 Example:
 
-  ``category`` is used to specificy a category. You can either reference an existing category or create your own.
+``category`` is used to specificy a category. You can either reference an existing category or create your own.
 
   .. code-block:: xml
 
- <group name="myapplication,">
-  <rule id="100200" level="0">
-    <category>myapplication</category>
-    <description>Rules for my application</description>
- </rule>
+  <group name="myapplication,">
+    <rule id="100200" level="0">
+      <category>myapplication</category>
+      <description>Rules for my application</description>
+    </rule>
 
 We created a ``group`` and ``category`` for ``myapplication``. You can now use your ``category`` as a filter to create or edit kibana dashboards for alerts about ``myapplication``. 
 
