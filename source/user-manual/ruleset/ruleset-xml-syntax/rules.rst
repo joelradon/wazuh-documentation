@@ -611,10 +611,10 @@ Any action (decoded as the ACTION).
 
 ``action`` can be defined in a decoder and is similar to the example used with ``id``. Action is used to specify a type of log message. If you look at the Serv-U decoder, you will notice that the logs are use a number in each log file to specify a type of log. Here is a few:
 
-    [01] - System Messages
-    [02] - Security Messages
-    [03] - IP Names
-    [04] - ODBC Calls
+[01] - System Messages
+[02] - Security Messages
+[03] - IP Names
+[04] - ODBC Calls
 
 
 Our decoder has the regex expression spelled out so we are capturing the number field as an acion. 
@@ -658,6 +658,32 @@ Matches if the ID has matched.
 | **Allowed values** | Any rule id |
 +--------------------+-------------+
 
+``if_sid`` is used to piggyback off another rule. We can use this to duplicate the function of an existing rule. Then we can add whatever fields we would like to it.
+
+
+In the first example we will see how ``if_sid`` is used. Rule ID 86600 is used to point to the suricata decoder to capture suricata json logs. Then we use Rule ID 86601 to specify ``if_sid`` to look through suricata logs and alert on event type = alert. We can also use ``if_sid`` on Rule ID 100943 to change the alert level of alerts to level 7 without touching the original rule.
+
+  .. code-block:: xml
+
+    <rule id="86600" level="0">
+      <decoded_as>json</decoded_as>
+      <field name="timestamp">\.+</field>
+      <field name="event_type">\.+</field>
+      <description>Suricata messages.</description>
+    </rule>
+
+    <rule id="86601" level="3">
+      <if_sid>86600</if_sid>
+      <field name="event_type">^alert$</field>
+      <description>Suricata: Alert - $(alert.signature)</description>
+    </rule>
+
+    <rule id="100943" level="7">
+      <if_sid>86600</if_sid>
+      <description>Higher Level Suricata Alert!!</description>
+    </rule>
+
+
 if_group
 ^^^^^^^^
 
@@ -669,6 +695,26 @@ Matches if the group has matched before.
 | **Allowed values** | Any Group |
 +--------------------+-----------+
 
+We can create a group and then reference it in a later using ``if_group`` to create an alert. See this example of audit_watch_write group.
+
+  .. code-block:: xml
+
+    <rule id="80780" level="3">
+      <if_sid>80700</if_sid>
+      <list field="audit.key" lookup="match_key_value" check_value="write">etc/lists/audit-keys</list>
+      <description>Audit: Watch - Write access</description>
+      <group>audit_watch_write,gdpr_IV_30.1.g,</group>
+    </rule>
+
+
+    <rule id="80790" level="3">
+      <if_group>audit_watch_write</if_group>
+      <match>type=CREATE</match>
+      <description>Audit: Created: $(audit.file.name)</description>
+      <group>audit_watch_write,audit_watch_create,gdpr_II_5.1.f,gdpr_IV_30.1.g,</group>
+    </rule>
+
+    
 if_level
 ^^^^^^^^
 
@@ -693,6 +739,31 @@ This option is used in conjunction with frequency and timeframe.
 | **Allowed values** | Any rule id |
 +--------------------+-------------+
 
+An example of ``if_matched_sid`` being used to alert on multiple failed login attempts in specific timeframe.
+
+
+  .. code-block:: xml
+
+    <rule id="35005" level="5">
+      <if_sid>35002</if_sid>
+      <id>^403</id>
+      <description>Squid: Forbidden: Attempt to access forbidden file </description>
+      <description>or directory.</description>
+      <group>pci_dss_10.2.4,gdpr_IV_35.7.d,</group>
+    </rule>
+
+
+    <rule id="35051" level="10" frequency="$SQUID_FREQ" timeframe="120">
+      <if_matched_sid>35005</if_matched_sid>
+      <same_source_ip />
+      <different_url />
+      <description>Squid: Multiple attempts to access forbidden file </description>
+      <description>or directory from same source ip.</description>
+      <group>pci_dss_10.2.4,pci_dss_11.4,gdpr_IV_35.7.d,</group>
+    </rule>
+
+
+
 .. note::
   Rules at level 0 are discarded immediately and will not be used with the if_matched_rules. The level must be at least 1, but the <no_log> option can be added to the rule to make sure it does not get logged.
 
@@ -708,6 +779,17 @@ This option is used in conjunction with frequency and timeframe.
 +--------------------+-----------+
 | **Allowed values** | Any Group |
 +--------------------+-----------+
+
+We can see an ``if_matched_group`` example for detecting a brute force attack.
+
+  .. code-block:: xml
+
+
+    <rule id="40111" level="10" frequency="12" timeframe="160">
+      <if_matched_group>authentication_failed</if_matched_group>
+      <same_source_ip />
+      <description>Multiple authentication failures.</description>
+    </rule>
 
 
 same_id
