@@ -260,7 +260,7 @@ Any ``OS_Regex`` to be compared to a field extracted by the decoder.
 
 Example:
 
-  ``field`` can be used to specify a field value. We can specify to only alert on Error Severity levels for a specific exe file. 
+``field`` can be used to specify a field value. We can specify to only alert on Error Severity levels for a specific exe file. 
 
   .. code-block:: xml
 
@@ -284,6 +284,38 @@ Any IP address or CIDR block to be compared to an IP decoded as srcip. Use "!" t
 | **Allowed values** | Any srcip |
 +--------------------+-----------+
 
+Example:
+
+To better understand ``srcip`` , we must understand how it is defined in a decoder. Let's take a look at the snort decoder file. You can see in the decoder file that the src ip is specified using a regex expression to match the format of the snort log files.
+
+  .. code-block:: xml
+
+    <decoder name="snort2">
+      <parent>snort</parent>
+      <type>ids</type>
+      <prematch>^[**] |^[\d+:\d+:\d+] </prematch>
+      <regex>^[**] [(\d+:\d+:\d+)] \.+ (\S+)\p*\d* -> </regex>
+      <regex>(\S+)|^[(\d+:\d+:\d+)] \.+ </regex>
+      <regex>(\S+)\p*\d* -> (\S+)</regex>
+      <order>id,srcip,dstip</order>
+      <fts>name,id,srcip,dstip</fts>
+    </decoder>
+
+We can now reference the source IP. This rule uses the field ``srcip`` which was definied in the snort decoder to create an alert for multiple attempts from the same source IP.
+
+
+  .. code-block:: xml
+
+    <rule id="20151" level="10" frequency="$IDS_FREQ" timeframe="120" ignore="90">
+      <if_matched_sid>20101</if_matched_sid>
+      <same_source_ip />
+      <check_if_ignored>srcip, id</check_if_ignored>
+      <description>Multiple IDS events from same source ip.</description>
+      <group>pci_dss_10.6.1,pci_dss_11.4,gdpr_IV_35.7.d,</group>
+    </rule>
+
+
+
 dstip
 ^^^^^
 
@@ -294,6 +326,9 @@ Any IP address or CIDR block to be compared to an IP decoded as dstip. Use "!" t
 +--------------------+-----------+
 | **Allowed values** | Any dstip |
 +--------------------+-----------+
+
+``dstip`` is a value used for destination IP . See ``srcip`` above for more information on how ``dstip`` and ``srcip`` are defined.
+
 
 extra_data
 ^^^^^^^^^^
@@ -306,6 +341,30 @@ Any string that is decoded into the extra_data field.
 | **Allowed values** | Any string. |
 +--------------------+-------------+
 
+Example:
+
+Let's look at the apparmor decoder to see how ``extra_data`` is being defined. A regex expression is being used to capture the operation. We can see below this is defined as ``extra_data``
+
+  .. code-block:: xml
+
+    <decoder name="apparmor">
+      <parent>kernel</parent>
+      <prematch> apparmor=</prematch>
+      <regex> apparmor="(\S+)" operation="(\S+)"</regex>
+      <order>status, extra_data</order>
+    </decoder>
+
+We can now use a rule to define ``extra_data`` to display which operation was executed or attempted to execute.
+
+  .. code-block:: xml
+
+    <rule id="52003" level="5">
+      <if_sid>52002</if_sid>
+      <extra_data>exec</extra_data>
+      <description>Apparmor DENIED exec operation.</description>
+      <group>pci_dss_10.2.7,pci_dss_10.6.1,gdpr_IV_35.7.d,</group>
+    </rule>
+
 user
 ^^^^
 
@@ -316,6 +375,19 @@ Any username (decoded as the username).
 +--------------------+------------------------------------------------------------------+
 | **Allowed values** | Any `sregex expression <regex.html#os-match-or-sregex-syntax>`_  |
 +--------------------+------------------------------------------------------------------+
+
+Like the other examples above, ``user`` is used in a decoder to define the value of user in the log file using a regex expression. Let's examine the ssh-denied decoder.  
+
+  .. code-block:: xml
+
+    <decoder name="ssh-denied">
+      <parent>sshd</parent>
+      <prematch>^User \S+ from </prematch>
+      <regex offset="after_parent">^User (\S+) from (\S+) </regex>
+      <order>user, srcip</order>
+    </decoder>
+
+
 
 program_name
 ^^^^^^^^^^^^
