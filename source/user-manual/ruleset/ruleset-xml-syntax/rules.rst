@@ -400,6 +400,32 @@ Program name is decoded from syslog process name.
 | **Allowed values** | Any `sregex expression <regex.html#os-match-or-sregex-syntax>`_  |
 +--------------------+------------------------------------------------------------------+
 
+``program_name`` is used in decoders to reference a syslog process name. The ClamAV decoder specifies the syslog process clamd is the ``program_name`` 
+
+  .. code-block:: xml
+
+    <decoder name="clamd">
+      <program_name>^clamd</program_name>
+    </decoder>
+
+We see in the first rule below that the clamd decoder is specified. Then another rule is created to act if the first rule detects a clamd log messaged and the output matches FOUND. 
+
+  .. code-block:: xml
+
+
+    <rule id="52500" level="0" noalert="1">
+      <decoded_as>clamd</decoded_as>
+      <description>Clamd messages grouped.</description>
+    </rule>
+
+    <rule id="52502" level="8">
+      <if_sid>52500</if_sid>
+      <match>FOUND</match>
+      <description>ClamAV: Virus detected</description>
+      <group>virus,pci_dss_5.1,pci_dss_5.2,pci_dss_11.4,gpg13_4.2,gdpr_IV_35.7.d,</group>
+    </rule>
+
+
 hostname
 ^^^^^^^^
 
@@ -410,6 +436,18 @@ Any hostname (decoded as the syslog hostname) or log file.
 +--------------------+------------------------------------------------------------------+
 | **Allowed values** | Any `sregex expression <regex.html#os-match-or-sregex-syntax>`_  |
 +--------------------+------------------------------------------------------------------+
+
+
+``hostname`` can be used to alert on actions from specific hostnames. Let's say that we want to alert with high priority apparmor deny actions on servers srv1 and srv3. However, we dont want alerts on srv2 and srv4.
+
+  .. code-block:: xml
+
+    <rule id="100843" level="10">
+      <if_sid>52003</if_sid>
+      <hostname>srv1|srv3<hostname>
+      <description>Apparmor operation denied on high priority server!</description>
+    </rule>
+
 
 time
 ^^^^
@@ -422,6 +460,17 @@ Time that the event was generated.
 | **Allowed values** | Any time range (hh:mm-hh:mm, hh:mm am-hh:mm pm, hh-hh, hh am-hh pm)  |
 +--------------------+----------------------------------------------------------------------+
 
+We can generate alerts based on time. For example during non-business hours.
+
+  .. code-block:: xml
+
+    <rule id="17101" level="9">
+      <if_group>authentication_success</if_group>
+      <time>6 pm - 8:30 am</time>
+      <description>Successful login during non-business hours.</description>
+    </rule>
+
+
 weekday
 ^^^^^^^
 
@@ -432,6 +481,17 @@ Week day that the event was generated.
 +--------------------+-------------------------------------+
 | **Allowed values** | monday - sunday, weekdays, weekends |
 +--------------------+-------------------------------------+
+
+We can generate alerts based on weekday or timeframe like weekdays or weekends.
+
+  .. code-block:: xml
+
+    <rule id="17102" level="9">
+      <if_group>authentication_success</if_group>
+      <weekday>weekends</weekday>
+      <description>Successful login during weekend.</description>
+    </rule>
+
 
 id
 ^^
@@ -444,6 +504,23 @@ Any ID (decoded as the ID).
 | **Allowed values** | Any `sregex expression <regex.html#os-match-or-sregex-syntax>`_  |
 +--------------------+------------------------------------------------------------------+
 
+``id`` can be used for logs that contain an ID to specify category for a type of event. This can be seen with the pix rules. For example, ``id`` 1 = PIX alert message and ``id`` 2 - PIX critical message.
+
+  .. code-block:: xml
+
+    <rule id="4310" level="5">
+      <if_sid>4300</if_sid>
+      <id>^1-</id>
+      <description>PIX alert message.</description>
+     </rule>
+
+    <rule id="4311" level="5">
+      <if_sid>4300</if_sid>
+      <id>^2-</id>
+      <description>PIX critical message.</description>
+    </rule>
+
+
 url
 ^^^
 
@@ -454,6 +531,21 @@ Any URL (decoded as the URL).
 +--------------------+------------------------------------------------------------------+
 | **Allowed values** | Any `sregex expression <regex.html#os-match-or-sregex-syntax>`_  |
 +--------------------+------------------------------------------------------------------+
+
+``url`` can be used to alert on a specific url. This rule alerts on Wordpress comment spam, but specifying the ``url`` of wp-comments-post.php.
+
+  .. code-block:: xml
+
+    <rule id="31501" level="6">
+      <if_sid>31100</if_sid>
+      <match>POST /</match>
+      <url>/wp-comments-post.php</url>
+      <regex>Googlebot|MSNBot|BingBot</regex>
+      <description>WordPress Comment Spam (coming from a fake search engine UA).</description>
+      <group>pci_dss_6.5,pci_dss_11.4,gdpr_IV_35.7.d,</group>
+    </rule>
+
+
 
 location
 ^^^^^^^^
@@ -516,6 +608,44 @@ Any action (decoded as the ACTION).
 +--------------------+----------------------+
 | **Allowed values** | Any String.          |
 +--------------------+----------------------+
+
+``action`` can be defined in a decoder and is similar to the example used with ``id``. Action is used to specify a type of log message. If you look at the Serv-U decoder, you will notice that the logs are use a number in each log file to specify a type of log. Here is a few:
+
+    [01] - System Messages
+    [02] - Security Messages
+    [03] - IP Names
+    [04] - ODBC Calls
+
+
+Our decoder has the regex expression spelled out so we are capturing the number field as an acion. 
+
+  .. code-block:: xml
+
+    <decoder name="serv-u_type">
+      <parent>serv-u</parent>
+      <prematch offset="after_parent">^\w</prematch>
+      <regex>^[(\d\d)]</regex>
+      <order>action</order>
+    </decoder>
+
+We can now specify rules based on the action.
+
+  .. code-block:: xml
+
+    <rule id="80502" level="1">
+      <if_sid>80500</if_sid>
+      <action>01</action>
+      <match>Domain started</match>
+      <description>Serv-U: Domain started</description>
+    </rule>
+
+    <rule id="80503" level="3">
+      <if_sid>80500</if_sid>
+      <action>02</action>
+      <match>logged in</match>
+      <description>Serv-U: User logged in</description>
+    </rule>
+
 
 if_sid
 ^^^^^^
